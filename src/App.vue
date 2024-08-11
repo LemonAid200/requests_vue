@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    <div class="hello">asdasdasd</div>
   </div>
 </template>
 
@@ -22,8 +21,6 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
 
-  .hello {
-    background: red;
-  }
+
 }
 </style>
