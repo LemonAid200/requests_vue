@@ -5,6 +5,7 @@ export const authModule = {
         isAuthorised: false,
         key: '',
         employee_id: '',
+
         authenticationLink: 'https://dev.moydomonline.ru/api/auth/login/'
     }),
 
@@ -15,24 +16,33 @@ export const authModule = {
           state.key = authResponse.key
           state.employee_id = authResponse.employee_id
           state.isAuthorised = true
+        } else {
+          state.isAuthorised = false
         }
       }
     },
     actions: {
-      async auth({commit}, authParams){
+      authCheck({state}){
+        if (localStorage.getItem('authParams')) state.isAuthorised = true
+        return state.isAuthorised
+      },
+      async auth({state, commit}, authParams){
         try {
            const response = await axios.post(`https://dev.moydomonline.ru/api/auth/login/`, 
             {
-              "username": authParams.login, 
-              "password": authParams.password
+              "username": authParams?.login, 
+              "password": authParams?.password
             }
           )
           commit('setAuth', response.data)
           localStorage.setItem('authResponce', JSON.stringify(response.data))
+          localStorage.setItem('authParams', JSON.stringify(authParams))
+          state.isAuthorised = true
 
         } catch (e) {
+          state.isAuthorised = false
           console.error(e)
-        }
+        } 
       }
     },
     namespaced: true

@@ -1,8 +1,8 @@
 <template>
-  <div class="custom_input">
-    <label :for="id">{{ label }}</label>
+  <div class="custom_input" :class="{ 'custom_input--no-label' : !label }">
+    <label v-if="label" :for="id">{{ label }}</label>
     <div class="custom_input__inner">
-      <img :src="icon || icons[type || inputType]" class="custom_input__inner__icon--left" >
+      <img v-if="icon || icons[type || inputType]" :src="icon || icons[type || inputType]" class="custom_input__inner__icon--left" >
       <input :id="id" :type="inputType" :placeholder="placeholder" :value="value" 
         @input="updateValue($event.target.value)">
       <img :src="rightIcon || rightIcons[type || inputType]" @click="toggleState" class="custom_input__inner__icon--right" >
@@ -122,6 +122,11 @@ export default {
         margin-right: 12px;
       }
     }
+  }
+
+  .custom_input--no-label{
+    height: 38px;
+    grid-template-rows: 1fr;
   }
 
 </style>

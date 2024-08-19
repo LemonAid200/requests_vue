@@ -4,6 +4,7 @@
             <div class="registration__title">Авторизация</div>
 
             <form @submit.stop.prevent="authenticate">
+                <span class="error">{{ errorMesage }}</span>
                 <CustomInput v-model="login"    :label="'Логин или телефон'" :type="'tel'" :inputType="'tel'" />
                 <CustomInput v-model="password" :type="'password'"
                     :inputType="isPasswordHidden ? passwordStates.hidden : passwordStates.notHidden"
@@ -28,6 +29,7 @@ export default {
             login: '+7',
             password: '',
             isPasswordHidden: true,
+            errorMesage: '',
             passwordStates: {
                 hidden: 'password',
                 notHidden: 'text'
@@ -41,9 +43,32 @@ export default {
         togglePasswordVisibility(){
             this.isPasswordHidden = !this.isPasswordHidden
         },
-        authenticate(){            
-            this.auth({login: this.login.replace(/\D/g, ''), password: this.password})
+        async authenticate(){
+            await this.auth({login: this.login.replace(/^\+/, '').replace(/\s+/g, ''), password: this.password})
+            if (this.$store.state.auth.isAuthorised){
+                this.$router.push({name: 'Requests'})
+            } else {
+                this.errorMesage = 'Убедитесь в правильности данных'
+            }
+        },
+        setAuthParamsFormStorage(){
+            const authParams = JSON.parse(localStorage.getItem('authParams'))
+            if (authParams){
+                this.login = '+' + authParams.login
+                this.password = authParams.password
+            }
+        },
+        resetErrorMesage(){
+            this.errorMesage = ''
         }
+    },
+    watch: {
+        login: 'resetErrorMesage',
+        password: 'resetErrorMesage',
+
+    },
+    mounted() {
+        this.setAuthParamsFormStorage()
     },
 
 
@@ -98,9 +123,15 @@ export default {
             align-items: center;
             gap: 8px;
             width: 100%;
-            margin-top: 34px;
 
-
+            .error {
+                align-self: flex-start;
+                font-size: small;
+                color: #ed4b4b;
+                height: 15px;
+                margin-bottom: 19px;
+                margin-left: 32px;
+            }
 
 
             .registration_modal__btn--submit{
