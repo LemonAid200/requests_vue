@@ -1,12 +1,12 @@
 <template>
     <div class="requests">
         <div class="requests_top">
-            <button class="requests_top__btn--new">Создать</button>
+            <button class="requests_top__btn--new" @click="isModalOpen = true">Создать</button>
         </div>
         <div class="requests_filters">
-            <CustomInput  v-model="filterSearch" 
-                :right-icon="'./icons/search.svg'" placeholder="Поиск (№ заявки, название)"/>
-            <CustomSelect v-model="filterAddres" 
+            <CustomInput  v-model="filterSearch" @submit="searchRequest"
+                :right-icon="'./icons/search.svg'"     placeholder="Поиск (№ заявки, название)"/>
+            <CustomSelect v-model="filterAddres" @submit="filterRequest"
                 :right-icon="'./icons/arrow-down.svg'" placeholder="Дом"/>
         </div>
 
@@ -25,10 +25,10 @@
                 <CustomSelect :optionsPosition="'up'" v-model="pageSize" :placeholder="'10'" 
                     :rightIcon="'./icons/arrow-down.svg'" />
             </div>
-            <div class="requests__pagination_page">
-                {{ requestsPagesAmount }}
-            </div>
+            
+            <CustomPagination v-model="page" :amountOfPages="requestsPagesAmount" />
         </div>
+        <CustomModal @closeModal="isModalOpen = false" v-show="isModalOpen"/>
     </div>
 </template>
 
@@ -37,35 +37,47 @@
 import CustomInput from '@/components/CustomInput.vue';
 import CustomTable from '@/components/CustomTable.vue';
 import CustomSelect from '@/components/CustomSelect.vue';
+import CustomPagination from '@/components/CastomPagination.vue'
+import CustomModal from '@/components/CustomModal.vue';
+
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
     data() {
         return {
             filterSearch: '',
-            filterAddres: '',
+            filterPremise_id: '',
             pageSize: 10,
             pageStart: 0,
             page: 1,
-            pagesAmount: 0,
+            isModalOpen: false,
         }
     },
     components: {
         CustomInput,
         CustomTable,
-        CustomSelect
+        CustomSelect,
+        CustomPagination,
+        CustomModal
     },
     methods: {
         ...mapActions({
             fetchRequestsData: 'requests/fetchRequestsData',
             auth: 'auth/auth',
-            authCheck: 'auth/authCheck'
+            authCheck: 'auth/authCheck',
+            fetchFilteredRequestsData: 'requests/fetchFilteredRequestsData'
         }),
         redirectToAuth(){
             this.$router.push({name: 'Registration'})            
         },
         async updateRequests(){
-            this.fetchRequestsData({pageSize: this.pageSize})
+            this.fetchRequestsData({pageSize: this.pageSize, page: this.page, search: this.filterSearch})
+        },
+        async searchRequest(){
+            this.fetchRequestsData({pageSize: 10, page: 1, search: this.filterSearch})
+        },
+        async filterRequest(){
+            this.fetchFilteredRequestsData({pageSize: 10, page: 1, premise_id: this.filterPremise_id})
         }
     },
     computed: {
@@ -79,7 +91,8 @@ export default {
         }
     },
     watch: {
-        pageSize: 'updateRequests'
+        pageSize: 'updateRequests',
+        page: 'updateRequests'
     },
     async mounted() {
         if (await this.authCheck()){

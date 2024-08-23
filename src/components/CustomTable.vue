@@ -11,7 +11,7 @@
                 <td>{{ formatDate(request?.created_at) }}</td>
                 <td>{{ request?.premise?.address + ' ' + request?.apartment?.label }}</td>
                 <td>{{ formatName(request?.applicant) }}</td>
-                <td>{{ request.description }}</td>
+                <td class="request_description">{{ request.description }}</td>
                 <td>{{ formatDateTime(request.due_date) }}</td>
                 <td>{{ request.status.name }}</td>
             </tr>
@@ -101,7 +101,13 @@ table {
                 display: flex;
                 justify-content: center;
                 align-items: center;
+            }
 
+            .request_description{
+                max-width: 280px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
             }
         }
     }

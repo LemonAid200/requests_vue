@@ -23,23 +23,49 @@ export const requestsModule = {
       }
     },
     actions: {
-        async fetchRequestsData({commit}, { pageSize }){
+        async fetchRequestsData({commit}, { pageSize, page, search }){
 
             let authParams = JSON.parse(localStorage.getItem('authParams'))
             let authResponse = JSON.parse(localStorage.getItem('authResponce'))
 
-            if (authParams && authResponse){
-                const data = await axios
-                    .get(`https://dev.moydomonline.ru/api/appeals/v1.0/appeals?page_size=${pageSize}`, 
-                        // fix page size
-                        {
-                            auth: {
-                                username: authParams.login,
-                                password: authParams.password
-                            }
-                        })
+            try {
+                if (authParams && authResponse){
+                    const data = await axios
+                        .get(`https://dev.moydomonline.ru/api/appeals/v1.0/appeals?page_size=${pageSize}&page=${page}&search=${search}`, 
+                            {
+                                auth: {
+                                    username: authParams.login,
+                                    password: authParams.password
+                                }
+                            })
+    
+                    commit('setRequestsData', data)
+                }
+            } catch (e) {
+                console.error(e)
+            }
+        },
 
-                commit('setRequestsData', data)
+        // unfinished function
+        async fetchFilteredRequestsData({commit}, { pageSize, page, premise_id }){
+            let authParams = JSON.parse(localStorage.getItem('authParams'))
+            let authResponse = JSON.parse(localStorage.getItem('authResponce'))
+
+            try {
+                if (authParams && authResponse){
+                    const data = await axios
+                        .get(`https://dev.moydomonline.ru/api/geo/v2.0/user-premises?page_size=${pageSize}&page=${page}&premise_id=${premise_id}`, 
+                            {
+                                auth: {
+                                    username: authParams.login,
+                                    password: authParams.password
+                                }
+                            })
+    
+                    commit('setRequestsData', data)
+                }
+            } catch (e) {
+                console.error(e)
             }
         }
     },

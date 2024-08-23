@@ -1,11 +1,13 @@
 <template>
   <div class="custom_input" :class="{ 'custom_input--no-label' : !label }">
-    <label v-if="label" :for="id">{{ label }}</label>
+    <label v-if="label" :for="id" :style="{marginLeft : labelIndent}">{{ label }}</label>
     <div class="custom_input__inner">
       <img v-if="icon || icons[type || inputType]" :src="icon || icons[type || inputType]" class="custom_input__inner__icon--left" >
       <input :id="id" :type="inputType" :placeholder="placeholder" :value="value" 
+        @focusout="$emit('submit')"
+        @keyup.enter="$emit('submit')"
         @input="updateValue($event.target.value)">
-      <img :src="rightIcon || rightIcons[type || inputType]" @click="toggleState" class="custom_input__inner__icon--right" >
+      <img v-if="rightIcon || rightIcons[type || inputType]" :src="rightIcon || rightIcons[type || inputType]" @click="toggleState" class="custom_input__inner__icon--right" >
     </div>    
   </div>
 </template>
@@ -35,6 +37,9 @@ export default {
     label: {
       type:String,
       required: false
+    },
+    labelIndent: {
+      type: Number,
     },
     icon: {
       type: String,
@@ -82,6 +87,7 @@ export default {
       color: rgb(80, 176, 83);
       font-size: 12px;
       margin-left: 32px;
+      column-span: all;
     }
 
     &__inner {
@@ -95,7 +101,7 @@ export default {
       
       input {
         border: none;
-        width: 224px;
+        width: 100%;
         font-family: Roboto;
 
         
@@ -120,6 +126,7 @@ export default {
       &__icon--right {
         width: 24px;
         margin-right: 12px;
+        cursor: pointer;
       }
     }
   }
