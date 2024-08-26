@@ -6,7 +6,7 @@
         <div class="requests_filters">
             <CustomInput  v-model="filterSearch" @submit="searchRequest"
                 :right-icon="'./icons/search.svg'"     placeholder="Поиск (№ заявки, название)"/>
-            <CustomSelect v-model="filterAddres" @submit="filterRequest"
+            <CustomSelect v-model="filterPremise_id" @submit="filterRequest" :options="Object.keys(addressesList)"
                 :right-icon="'./icons/arrow-down.svg'" placeholder="Дом"/>
         </div>
 
@@ -28,7 +28,7 @@
             
             <CustomPagination v-model="page" :amountOfPages="requestsPagesAmount" />
         </div>
-        <CustomModal @closeModal="isModalOpen = false" v-show="isModalOpen"/>
+        <CustomModal @postSucsessful="updateRequests" @closeModal="isModalOpen = false" v-show="isModalOpen"/>
     </div>
 </template>
 
@@ -51,6 +51,7 @@ export default {
             pageStart: 0,
             page: 1,
             isModalOpen: false,
+            addressesList: ['...']
         }
     },
     components: {
@@ -65,7 +66,8 @@ export default {
             fetchRequestsData: 'requests/fetchRequestsData',
             auth: 'auth/auth',
             authCheck: 'auth/authCheck',
-            fetchFilteredRequestsData: 'requests/fetchFilteredRequestsData'
+            fetchFilteredRequestsData: 'requests/fetchFilteredRequestsData',
+            getAdresses: 'requests/getAdresses'
         }),
         redirectToAuth(){
             this.$router.push({name: 'Registration'})            
@@ -77,7 +79,15 @@ export default {
             this.fetchRequestsData({pageSize: 10, page: 1, search: this.filterSearch})
         },
         async filterRequest(){
-            this.fetchFilteredRequestsData({pageSize: 10, page: 1, premise_id: this.filterPremise_id})
+            // needs fix
+            console.log('call filter')
+            this.$nextTick(() => {
+                this.fetchFilteredRequestsData({pageSize: this.pageSize, page: this.page, premise_id: this.addressesList[this.filterPremise_id]})
+            });
+
+        },
+        async updateAutocompleteList(){
+            this.addressesList = await this.getAdresses({address: this.filterPremise_id.split(',')[0]})
         }
     },
     computed: {
@@ -88,15 +98,18 @@ export default {
         }),
         pageEnd(){
             return this.pageStart + Number(this.pageSize)
-        }
+        },
+        
     },
     watch: {
         pageSize: 'updateRequests',
-        page: 'updateRequests'
+        page: 'updateRequests',
+        filterPremise_id: 'updateAutocompleteList'
     },
     async mounted() {
         if (await this.authCheck()){
             await this.updateRequests()
+            this.updateAutocompleteList()
         } else {            
             this.redirectToAuth()            
         }

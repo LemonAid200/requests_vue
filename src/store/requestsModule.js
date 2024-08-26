@@ -2,7 +2,9 @@ import axios from "axios"
 
 export const requestsModule = {
     state: () => ({
-        requestsData: {}
+        requestsData: {},
+        lastPublishedRequest: {},
+        addressesList: []
     }),
     getters: {
         getRequestsList(state){
@@ -20,6 +22,12 @@ export const requestsModule = {
     mutations: {
       setRequestsData(state, response){
         state.requestsData = response
+      },
+      setLastPublishedRequest(state, request){
+        state.lastPublishedRequest = request
+      },
+      setAddressesList(state, adresses){
+        state.addressesList = adresses
       }
     },
     actions: {
@@ -46,15 +54,14 @@ export const requestsModule = {
             }
         },
 
-        // unfinished function
-        async fetchFilteredRequestsData({commit}, { pageSize, page, premise_id }){
+        async fetchFilteredRequestsData({commit}, { premise_id }){
+            if (!premise_id) return
             let authParams = JSON.parse(localStorage.getItem('authParams'))
             let authResponse = JSON.parse(localStorage.getItem('authResponce'))
-
             try {
                 if (authParams && authResponse){
                     const data = await axios
-                        .get(`https://dev.moydomonline.ru/api/geo/v2.0/user-premises?page_size=${pageSize}&page=${page}&premise_id=${premise_id}`, 
+                        .get(`https://dev.moydomonline.ru/api/appeals/v1.0/appeals?premise_id=${premise_id}`, 
                             {
                                 auth: {
                                     username: authParams.login,
@@ -67,7 +74,60 @@ export const requestsModule = {
             } catch (e) {
                 console.error(e)
             }
+        },
+        async pushNewRequest({commit}, {premise_id, apartment_id, first_name, last_name, patronymic_name, username, description, due_date, status_id}){
+            let authParams = JSON.parse(localStorage.getItem('authParams'))
+                let authResponse = JSON.parse(localStorage.getItem('authResponce'))
+                let key = JSON.parse(localStorage.getItem('authResponce')).key
+                let body = {
+                    hi: last_name,
+                    premise_id: premise_id,
+                    apartment_id: apartment_id,
+                    applicant: {
+                        first_name: first_name,
+                        last_name: last_name,
+                        patronymic_name: patronymic_name,
+                        username: username
+                    },
+                    description: description,
+                    due_date: due_date,
+                    status_id : status_id
+                }
+                const headers = {
+                    'Authorization': `Token ${key}`
+                };
+
+            try {
+                if (authParams && authResponse){
+                    const data = await axios
+                        .post(`https://dev.moydomonline.ru/api/appeals/v1.0/appeals/`,
+                            body, {headers})
+                    
+                    commit('setLastPublishedRequest', data)
+                }
+            } catch (e) {
+                console.error(e)
+            }
+        },
+        async getAdresses({commit}, {address}){
+            try {
+                let key = JSON.parse(localStorage.getItem('authResponce')).key
+                const headers = {
+                    'Authorization': `Token ${key}`
+                };
+                let data = await axios.get(`https://dev.moydomonline.ru/api/geo/v2.0/user-premises/?search=${address}`, {headers})
+                let addresses = {}
+                data.data.results.forEach(request => {
+                    addresses[String(request.address)] = String(request.id)
+                });
+
+                commit('setAddressesList', addresses)
+                return addresses
+            } catch(e){
+                console.error(e)
+            }
         }
+
     },
     namespaced: true
 }

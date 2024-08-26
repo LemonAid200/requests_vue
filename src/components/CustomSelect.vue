@@ -3,17 +3,24 @@
         <label v-if="label" :for="id" :style="{marginLeft : labelIndent}">{{ label }}</label>
         <div class="custom_select__inner" >
             <input  :placeholder="placeholder" :value="value" :id="id"
-                @input="updateValue($event.target.value)">
+                @focusout="$emit('submit')"
+                @keyup.enter="$emit('submit')" 
+                @input="updateValue($event.target.value); isOptionsHidden = false">
             <img :src="rightIcon" class="custom_select__inner__icon--right" @click="isOptionsHidden = !isOptionsHidden">
         </div>
 
         <ul class="custom_select__options_list" 
             v-show="options.length"
+            @mouseleave="isOptionsHidden = true"
             :class="{
                 'custom_select__options_list--hidden' : isOptionsHidden,
                 'custom_select__options_list--up' : optionsPosition === 'up'
             }">
-            <li v-for="option in options" @click="updateValue(option); isOptionsHidden = true" :key="option" class="custom_select__options_list__option">
+            <li v-for="option in options" 
+                @keyup.enter="$emit('submit')" 
+                @click="updateValue(option); $emit('submit'); isOptionsHidden = true" 
+                :key="option" 
+                class="custom_select__options_list__option">
                 {{ option }}
             </li>
         </ul> 
@@ -172,6 +179,10 @@ methods: {
         &__option {
             font-family: Roboto;
             cursor: pointer;
+
+            &:hover {
+                background: rgba(197, 197, 219, 0.637);
+            }
         }
     }
 

@@ -13,7 +13,7 @@
                 <td>{{ formatName(request?.applicant) }}</td>
                 <td class="request_description">{{ request.description }}</td>
                 <td>{{ formatDateTime(request.due_date) }}</td>
-                <td>{{ request.status.name }}</td>
+                <td>{{ request?.status?.name }}</td>
             </tr>
         </tbody>
     </table>
