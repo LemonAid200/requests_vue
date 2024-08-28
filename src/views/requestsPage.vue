@@ -4,14 +4,15 @@
             <button class="requests_top__btn--new" @click="isModalOpen = true">Создать</button>
         </div>
         <div class="requests_filters">
-            <CustomInput  v-model="filterSearch" @submit="searchRequest"
+            <CustomInput  v-model="filterSearch" @submit="() => {resetPagination(); updateRequests()}"
                 :right-icon="'./icons/search.svg'"     placeholder="Поиск (№ заявки, название)"/>
-            <CustomSelect v-model="filterPremise_id" @submit="filterRequest" :options="Object.keys(addressesList)"
+            <CustomSelect v-model="filterAddress" @submit="() => {resetPagination(); updateRequests()}" :options="Object.keys(addressesList)"
                 :right-icon="'./icons/arrow-down.svg'" placeholder="Дом"/>
         </div>
 
-        <CustomTable v-if="requestsList" 
-            :requests-list="requestsList" />
+
+        <CustomTable v-if="requestsList?.length" :requests-list="requestsList" 
+            @selectItem="(request) =>{ this.requestToPatch = request; isModalOpen = true}"/>
 
         <div class="requests__pagination">
             <div class="requests__pagination_settings">
@@ -23,12 +24,17 @@
                 </span>
 
                 <CustomSelect :optionsPosition="'up'" v-model="pageSize" :placeholder="'10'" 
+                    :options="10"
                     :rightIcon="'./icons/arrow-down.svg'" />
             </div>
             
             <CustomPagination v-model="page" :amountOfPages="requestsPagesAmount" />
         </div>
-        <CustomModal @postSucsessful="updateRequests" @closeModal="isModalOpen = false" v-show="isModalOpen"/>
+        <CustomModal @postSucsessful="updateRequests" 
+            @closeModal="() => {isModalOpen = false; requestToPatch = {}}"
+            v-if="isModalOpen"
+            :requestToPatch="requestToPatch" />
+
     </div>
 </template>
 
@@ -46,12 +52,13 @@ export default {
     data() {
         return {
             filterSearch: '',
-            filterPremise_id: '',
+            filterAddress: '',
             pageSize: 10,
             pageStart: 0,
             page: 1,
             isModalOpen: false,
-            addressesList: ['...']
+            addressesList: ['...'],
+            requestToPatch: {}
         }
     },
     components: {
@@ -69,25 +76,18 @@ export default {
             fetchFilteredRequestsData: 'requests/fetchFilteredRequestsData',
             getAdresses: 'requests/getAdresses'
         }),
+        resetPagination(){
+            this.page = 1
+        },
         redirectToAuth(){
             this.$router.push({name: 'Registration'})            
         },
         async updateRequests(){
-            this.fetchRequestsData({pageSize: this.pageSize, page: this.page, search: this.filterSearch})
-        },
-        async searchRequest(){
-            this.fetchRequestsData({pageSize: 10, page: 1, search: this.filterSearch})
-        },
-        async filterRequest(){
-            // needs fix
-            console.log('call filter')
-            this.$nextTick(() => {
-                this.fetchFilteredRequestsData({pageSize: this.pageSize, page: this.page, premise_id: this.addressesList[this.filterPremise_id]})
-            });
-
+            console.log('update')
+            this.fetchRequestsData({pageSize: this.pageSize, page: this.page, search: this.filterSearch, premise_id: this.addressesList[this.filterAddress]})
         },
         async updateAutocompleteList(){
-            this.addressesList = await this.getAdresses({address: this.filterPremise_id.split(',')[0]})
+            this.addressesList = await this.getAdresses({address: this.filterAddress.split(',')[0]})
         }
     },
     computed: {
@@ -104,11 +104,11 @@ export default {
     watch: {
         pageSize: 'updateRequests',
         page: 'updateRequests',
-        filterPremise_id: 'updateAutocompleteList'
+        filterAddress: 'updateAutocompleteList'
     },
     async mounted() {
         if (await this.authCheck()){
-            await this.updateRequests()
+            this.updateRequests()
             this.updateAutocompleteList()
         } else {            
             this.redirectToAuth()            

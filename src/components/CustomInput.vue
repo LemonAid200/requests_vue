@@ -1,6 +1,6 @@
 <template>
   <div class="custom_input" :class="{ 'custom_input--no-label' : !label }">
-    <label v-if="label" :for="id" :style="{marginLeft : labelIndent}">{{ label }}</label>
+    <label v-if="label" :for="id" :style="{marginLeft : labelIndent + 'px'}">{{ label }}</label>
     <div class="custom_input__inner">
       <img v-if="icon || icons[type || inputType]" :src="icon || icons[type || inputType]" class="custom_input__inner__icon--left" >
       <input :id="id" :type="inputType" :placeholder="placeholder" :value="value" 
@@ -40,6 +40,7 @@ export default {
     },
     labelIndent: {
       type: Number,
+      default: () => 0
     },
     icon: {
       type: String,
@@ -86,7 +87,6 @@ export default {
     label {
       color: rgb(80, 176, 83);
       font-size: 12px;
-      margin-left: 32px;
       column-span: all;
     }
 

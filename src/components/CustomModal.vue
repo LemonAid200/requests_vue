@@ -1,17 +1,18 @@
 <template>
-    <div class="modal_wrapper" @click="$emit('closeModal')">
+    <div class="modal_wrapper" @scroll.stop="console.log('scrolling')" @click="$emit('closeModal')">
         <div class="modal_body" @click.stop="">
             <div class="modal_body__top">
-                <span class="modal_body__top__title">Создание заявки</span>
+                <span class="modal_body__top__title">{{ title }}</span>
                 <span class="modal_body__top__status">{{ status }}</span>
             </div>
             <form action="">
                 <CustomSelect :labelIndent="0" v-model="address"
-                    :options="addressNames" 
+                    :options="addressNames"
                     :label="address ? 'Дом' : ' '"
                     :placeholder="'Дом'"  :rightIcon="'./icons/arrow-down.svg'" />
-                <CustomSelect :labelIndent="0" v-model="apartment_id"    
-                    :label="apartment_id ? 'Квартира' : ' '"
+                <CustomSelect :labelIndent="0" v-model="apartment_label"
+                    :options="apartmentsList"
+                    :label="apartment_label ? 'Квартира' : ' '"
                     :placeholder="'Квартира'"  :rightIcon="'./icons/arrow-down.svg'" />
                 <CustomInput  :labelIndent="0" v-model="due_date"        
                     :label="due_date ? 'Срок' : ' '"
@@ -19,8 +20,8 @@
                 <CustomInput  :labelIndent="0" v-model="last_name"       
                     :label="last_name ? 'Фамилия' : ' '"
                     :placeholder="'Фамилия'"/>
-                <CustomInput  :labelIndent="0" v-model="firstName"       
-                    :label="firstName ? 'Имя' : ' '"
+                <CustomInput  :labelIndent="0" v-model="first_name"       
+                    :label="first_name ? 'Имя' : ' '"
                     :placeholder="'Имя'"/>
                 <CustomInput  :labelIndent="0" v-model="patronymic_name" 
                     :label="patronymic_name ? 'Отчество' : ' '"
@@ -32,7 +33,7 @@
                 <textarea :labelIndent="0" v-model="description" placeholder="Описание заявки" rows="4" ></textarea>
             </form>
             <div class="modal_body__bottom">
-                <button @click="postRequest(); $emit('closeModal')">Сохранить</button>
+                <button @click="postRequest();">Сохранить</button>
             </div>
         </div>        
     </div>
@@ -50,15 +51,16 @@ export default {
     data() {
         return {
             address: '',
-            apartment_id: '12',
-            due_date: '24.09.2024',
-            last_name: 'Грибоедов',
-            firstName: 'Александр',
-            patronymic_name: 'Сергеевич',
-            username: '800055535550', // phone number
-            description: 'Цитата есть цитата',
+            apartment_label: '',
+            due_date: '',
+            last_name: '',
+            first_name: '',
+            patronymic_name: '',
+            username: '', // phone number
+            description: '',
             status_id: 1,
-            adressesList: { '...': '...' }
+            adressesList: { '...': '...' },
+            apartmentsList: [4,5]
         }
     },
     props: {
@@ -67,6 +69,10 @@ export default {
         },
         date: {
             type: String,
+        },
+        requestToPatch: {
+            type: Object,
+            required: false
         }
     },
 
@@ -77,47 +83,97 @@ export default {
     methods: {
         ...mapActions({
             post: 'requests/pushNewRequest',
-            getAdresses: 'requests/getAdresses'
+            patch: 'requests/patchRequest',
+            getAdresses: 'requests/getAdresses',
+            getApartments: 'requests/getApartments'
 
         }),
 
         async updateAutocompleteList(){
-            this.adressesList = await this.getAdresses({address: this.address.split(',')[0]})
+            this.adressesList = await this.getAdresses({address: this.address?.split(',')[0] || ''})
+            this.apartmentsList = await this.getApartments({premise_id: this.adressesList[this.address]})
+            if (this.apartmentsList && !this.apartmentsList?.includes(this.apartment_label)){
+                this.apartment_label = ''
+            }
         },
 
         async postRequest(){
-            // const dateArr = this.due_date.split('.')            
             const due_date = Date.fromString(this.due_date)
 
-            await this.post({
-                        premise_id: this.adressesList[this.address],
-                        apartment_id: this.apartment_id,
-                        due_date: due_date,
-                        last_name: this.last_name,
-                        first_name: this.firstName,
-                        patronymic_name: this.patronymic_name,
-                        username: this.username,
-                        description: this.description,
-                        status_id: this.status_id
-                    })
+            if (this.requestToPatch.number){
+                await this.patch({
+                    appeal_id: this.requestToPatch.id,
+                    premise_id: this.adressesList[this.address],
+                    apartment_id: this.apartment_label,
+                    due_date: due_date,
+                    last_name: this.last_name,
+                    first_name: this.first_name,
+                    patronymic_name: this.patronymic_name,
+                    username: this.username,
+                    description: this.description,
+                    status_id: this.status_id === 1 ? 4 : this.requestToPatch.status.id
+                })
+            } else {
+                await this.post({
+                            premise_id: this.adressesList[this.address],
+                            apartment_id: this.apartment_label,
+                            due_date: due_date,
+                            last_name: this.last_name,
+                            first_name: this.first_name,
+                            patronymic_name: this.patronymic_name,
+                            username: this.username,
+                            description: this.description,
+                            status_id: 1
+                        })
+                    }
+            console.log('hello once again')
             this.$emit('postSucsessful')
+            this.$emit('closeModal')
+        },
+        formatDate(dateString){
+            const date = new Date(dateString);
+
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+
+            return `${day}.${month}.${year}`
         }
     },
     computed: {
         status(){
-            let statusesArr = ['Новая']
-            return statusesArr[this.status_id - 1]
+            return this.requestToPatch?.status?.name || 'Новая'
         },
         addressNames(){
             return Object.keys(this.adressesList)
+        },
+        title(){
+            if (this.requestToPatch?.number) {
+                let date = this.formatDate(this.requestToPatch.created_at)
+                return `Заявка № ${this.requestToPatch.number} от (${date})`
+            }
+            return 'Создание заявки'
         }
     },
     watch: {
         address: 'updateAutocompleteList'
     },
     mounted() {
+        if (this.requestToPatch?.number) {
+            this.address = this.requestToPatch?.premise?.address
+            this.apartment_label = this.requestToPatch.apartment?.number
+            this.due_date = this.formatDate(this.requestToPatch.due_date)
+
+            this.last_name = this.requestToPatch.applicant?.last_name
+            this.first_name = this.requestToPatch.applicant?.first_name
+            this.patronymic_name = this.requestToPatch.applicant?.patronymic_name
+            this.username = this.requestToPatch.applicant.username
+            this.description = this.requestToPatch.description
+            this.status_id = this.requestToPatch.status.id
+        }
+        console.log(this.requestToPatch)
         this.updateAutocompleteList()
-    },
+    }
     
 }
 </script>

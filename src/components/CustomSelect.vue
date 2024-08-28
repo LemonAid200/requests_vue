@@ -1,23 +1,22 @@
 <template>
-    <div class="custom_select" :class="{ custom_select__has_habel: label  }">
-        <label v-if="label" :for="id" :style="{marginLeft : labelIndent}">{{ label }}</label>
+    <div class="custom_select" :class="{ custom_select__has_habel: label }" >
+        <label v-if="label" :for="id" :style="{marginLeft : labelIndent  + 'px'}">{{ label }}</label>
         <div class="custom_select__inner" >
             <input  :placeholder="placeholder" :value="value" :id="id"
-                @focusout="$emit('submit')"
+                @focusin="isOptionsHidden = false"
                 @keyup.enter="$emit('submit')" 
                 @input="updateValue($event.target.value); isOptionsHidden = false">
             <img :src="rightIcon" class="custom_select__inner__icon--right" @click="isOptionsHidden = !isOptionsHidden">
         </div>
 
         <ul class="custom_select__options_list" 
-            v-show="options.length"
             @mouseleave="isOptionsHidden = true"
+            v-show="options?.length || options > 0"
             :class="{
                 'custom_select__options_list--hidden' : isOptionsHidden,
                 'custom_select__options_list--up' : optionsPosition === 'up'
             }">
             <li v-for="option in options" 
-                @keyup.enter="$emit('submit')" 
                 @click="updateValue(option); $emit('submit'); isOptionsHidden = true" 
                 :key="option" 
                 class="custom_select__options_list__option">
@@ -47,7 +46,8 @@ props: {
       required: false
     },
     labelIndent: {
-        type: Number
+        type: Number,
+        default: () => 0
     },
 
     optionsPosition: {
@@ -60,8 +60,7 @@ props: {
         default: ''
     },
     options: {
-        type: Array,
-        default: () => [2, 3, 4, 5, 6, 7, 8, 9, 10]
+        type: [Array, Number],
     },
     type: {
         type: String,
@@ -105,7 +104,6 @@ methods: {
     label {
       color: rgb(80, 176, 83);
       font-size: 12px;
-      margin-left: 32px;
       column-span: all;
     }
 
@@ -162,7 +160,7 @@ methods: {
         position: absolute;
         top: 104%;
         margin: 0;
-        padding: 2px 10px 2px 0;
+        padding: 2px 0px 2px 0;
         background: white;
         marker: none;
         list-style: none;
@@ -179,6 +177,7 @@ methods: {
         &__option {
             font-family: Roboto;
             cursor: pointer;
+            padding-right: 10px;
 
             &:hover {
                 background: rgba(197, 197, 219, 0.637);

@@ -6,10 +6,10 @@
             </tr>
         </thead>
         <tbody>
-            <tr v-for="request in requestsList" :key="request.id">
+            <tr v-for="request in requestsList" :key="request.id" @click="$emit('selectItem', request)">
                 <td><div class="request_number">{{ request?.number }}</div></td>
                 <td>{{ formatDate(request?.created_at) }}</td>
-                <td>{{ request?.premise?.address + ' ' + request?.apartment?.label }}</td>
+                <td>{{ request?.premise?.address || '' + ' ' + request?.apartment?.label || '' }}</td>
                 <td>{{ formatName(request?.applicant) }}</td>
                 <td class="request_description">{{ request.description }}</td>
                 <td>{{ formatDateTime(request.due_date) }}</td>

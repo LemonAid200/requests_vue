@@ -32,9 +32,11 @@ export default {
                     pages.push(i)
                 }
                 pages.push('...')
-                pages.push(12)
+                if (this.amountOfPages > 11) {pages.push(12)}
+                else {pages.push(this.amountOfPages)}
             } else if(this.amountOfPages - this.value < 5){
-                pages.push(this.amountOfPages - 12)
+                if (this.amountOfPages > 12) {pages.push(this.amountOfPages - 12)}
+                else {pages.push(1)}
                 pages.push('...')
                 for (let i = this.amountOfPages - 5; i <= this.amountOfPages; i++){
                     pages.push(i)

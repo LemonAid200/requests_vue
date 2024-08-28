@@ -5,7 +5,7 @@
 
             <form @submit.stop.prevent="authenticate">
                 <span class="error">{{ errorMesage }}</span>
-                <CustomInput v-model="login"    :label="'Логин или телефон'" :type="'tel'" :inputType="'tel'" />
+                <CustomInput v-model="login"  :labelIndent="32"  :label="'Логин или телефон'" :type="'tel'" :inputType="'tel'" />
                 <CustomInput v-model="password" :type="'password'"
                     :inputType="isPasswordHidden ? passwordStates.hidden : passwordStates.notHidden"
                     :placeholder="'Пароль'" @toggle="togglePasswordVisibility" />
