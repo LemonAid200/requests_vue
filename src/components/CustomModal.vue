@@ -1,5 +1,5 @@
 <template>
-    <div class="modal_wrapper" @scroll.stop="console.log('scrolling')" @click="$emit('closeModal')">
+    <div class="modal_wrapper" @click="$emit('closeModal')">
         <div class="modal_body" @click.stop="">
             <div class="modal_body__top">
                 <span class="modal_body__top__title">{{ title }}</span>
@@ -33,7 +33,7 @@
                 <textarea :labelIndent="0" v-model="description" placeholder="Описание заявки" rows="4" ></textarea>
             </form>
             <div class="modal_body__bottom">
-                <button @click="postRequest();">Сохранить</button>
+                <button @click="postRequest();">{{ this.requestToPatch.number ? 'Сохранить' : 'Создать'}}</button>
             </div>
         </div>        
     </div>
@@ -126,7 +126,6 @@ export default {
                             status_id: 1
                         })
                     }
-            console.log('hello once again')
             this.$emit('postSucsessful')
             this.$emit('closeModal')
         },
@@ -171,7 +170,6 @@ export default {
             this.description = this.requestToPatch.description
             this.status_id = this.requestToPatch.status.id
         }
-        console.log(this.requestToPatch)
         this.updateAutocompleteList()
     }
     
@@ -264,7 +262,7 @@ export default {
                 border: none;
                 width: 87px;
                 height: 36px;
-                border-radius: 2px 0px 0px 0px;
+                border-radius: 2px;
                 background: #50B053;
                 font-family: Roboto;
                 font-size: 14px;

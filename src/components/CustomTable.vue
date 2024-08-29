@@ -30,13 +30,13 @@ export default {
     data() {
         return {
             categories: [
-                {name: '№', sortKey: null, isSorting: false},
-                {name: 'Создана', sortKey: null, isSorting: false},
-                {name: 'Адрес', sortKey: null, isSorting: false},
-                {name: 'Заявитель', sortKey: null, isSorting: false},
-                {name: 'Описание', sortKey: null, isSorting: false},
-                {name: 'Срок', sortKey: null, isSorting: false},
-                {name: 'Статус', sortKey: null, isSorting: false},
+                {name: '№'},
+                {name: 'Создана'},
+                {name: 'Адрес'},
+                {name: 'Заявитель'},
+                {name: 'Описание'},
+                {name: 'Срок'},
+                {name: 'Статус'},
             ]
             }
     },  
@@ -62,7 +62,7 @@ export default {
             formatedName += nameObj?.last_name
             if (nameObj?.first_name[0]) formatedName += ` ${nameObj?.first_name[0]}.`
             if (nameObj?.patronymic_name[0]) formatedName += `${nameObj?.patronymic_name[0]}.`
-            return formatedName || 'not assigned'
+            return formatedName || ''
         }
 
     }  

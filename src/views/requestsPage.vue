@@ -83,7 +83,6 @@ export default {
             this.$router.push({name: 'Registration'})            
         },
         async updateRequests(){
-            console.log('update')
             this.fetchRequestsData({pageSize: this.pageSize, page: this.page, search: this.filterSearch, premise_id: this.addressesList[this.filterAddress]})
         },
         async updateAutocompleteList(){
@@ -147,6 +146,7 @@ export default {
             font-family: Roboto;
             font-size: 10px;
             font-weight: 400;
+            cursor: pointer;
         }
     }
 
